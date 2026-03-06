@@ -13,6 +13,8 @@ from scipy import ndimage as ndi
 from skimage.morphology import remove_small_objects, remove_small_holes, ball, binary_opening, skeletonize
 
 
+
+
 def has_holes_3d(vol, connectivity=1):
     vol = vol.astype(bool)
     bg = ~vol
