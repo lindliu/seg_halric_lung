@@ -24,28 +24,31 @@ if core.use_gpu()==False:
 # torch.cuda.ipc_collect()   
 
 
-train_dir = './data/annotation/train/all'
+# train_dir = './data/annotation/train/control_baseline'
+train_dir = './data/annotation/train/during_post'
+
 test_dir = './data/annotation/test/Rat_17_Non_gated_scan'
 masks_ext = "_seg.npy"
 
 
 
-model = models.CellposeModel(gpu=True)
+# model = models.CellposeModel(gpu=True)
 
-# new_model_path = './models/model_1'
-# model = models.CellposeModel(gpu=True,
-#                              pretrained_model=new_model_path)
+new_model_path = './models/model_1'
+model = models.CellposeModel(gpu=True,
+                             pretrained_model=new_model_path)
 
 
 
 from cellpose import train
 import os.path
 
-model_name = "model_1"
+# model_name = "model_control_baseline"
+model_name = "model_during_post"
 
 # default training params
-n_epochs = 2000
-learning_rate = 2e-5
+n_epochs = 500
+learning_rate = 1e-5
 weight_decay = 0.1
 batch_size = 1
 
