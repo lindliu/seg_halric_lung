@@ -114,14 +114,51 @@ def plot_3d_save(masks, save_path=None):
 num_re = re.compile(r'(\d+)(?!.*\d)')
 
 
+type_data = 'bleo'  # 'model_during_post' # 'control_baseline' #  
 ### load model
-new_model_path = './models/model_1'
-model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+if type_data == 'control_baseline':
+    new_model_path = './models/model_control_baseline'
+    model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+    #7,9,10,11,14,15,16,17,18,19,20,#1,2,4,5,6
+    root_path_list = [
+                      #'./data/Rat MIR/Rat 4',
+                      './data/Rat MIR/Rat 7',
+                      './data/Rat MIR/Rat 9_baseline_9',
+                      './data/Rat MIR/Rat 11_baseline_11',
+                      './data/Rat MIR/Rat 14_baseline_14',
+                      './data/Rat MIR/Rat 16_baseline_16',
+                      './data/Rat MIR/Rat 17',
+                      './data/Rat MIR/Rat 18',
+                      './data/Rat MIR/Rat 19_baseline_19',
+                      './data/Rat MIR/Rat 20']
 
-# root_path_list = ['./data/Rat MIR/Rat 7']
-root_path_list = glob('./data/Rat MIR/*')
+if type_data == 'model_during_post':
+    new_model_path = './models/model_during_post'
+    model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+    # 9,10,11,14,16,19
+    root_path_list = ['./data/Rat MIR/Rat 9_during-VILI_9',
+                      './data/Rat MIR/Rat 9_post_VILI_9',
+                      './data/Rat MIR/Rat 9_baseline_9',
+                      './data/Rat MIR/Rat 11_during-VILI_11',
+                      './data/Rat MIR/Rat 11_post-VILI_11',
+                      './data/Rat MIR/Rat 14_during-VILI_14',
+                      './data/Rat MIR/Rat 14_post-VILI_14',
+                      './data/Rat MIR/Rat 16_during-VILI_16',
+                      './data/Rat MIR/Rat 19_during-VILI_19',
+                      './data/Rat MIR/Rat 19_post-VILI_19']
+
+if type_data == 'bleo':
+    new_model_path = './models/bleo'
+    model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+    # 1,2,3,4,12,13
+    # root_path_list = glob('./data/Rat MIR/*') 
+    root_path_list = ['./data/Rat MIR/Rat 4',
+                    './data/Rat MIR//Rat 12',
+                    './data/Rat MIR//Rat 13']
+
 
 for root_path in root_path_list:
+    print(root_path)
     type_data = os.path.split(root_path)[1]
 
     path_list = glob(os.path.join(root_path, '2_tif/*.tif'))

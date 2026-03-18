@@ -25,7 +25,8 @@ if core.use_gpu()==False:
 
 
 # train_dir = './data/annotation/train/control_baseline'
-train_dir = './data/annotation/train/during_post'
+# train_dir = './data/annotation/train/during_post'
+train_dir = './data/annotation/train/bleo'
 
 test_dir = './data/annotation/test/Rat_17_Non_gated_scan'
 masks_ext = "_seg.npy"
@@ -34,7 +35,7 @@ masks_ext = "_seg.npy"
 
 # model = models.CellposeModel(gpu=True)
 
-new_model_path = './models/model_1'
+new_model_path = './models/model_during_post'
 model = models.CellposeModel(gpu=True,
                              pretrained_model=new_model_path)
 
@@ -44,11 +45,12 @@ from cellpose import train
 import os.path
 
 # model_name = "model_control_baseline"
-model_name = "model_during_post"
+# model_name = "model_during_post"
+model_name = "model_bleo"
 
 # default training params
-n_epochs = 500
-learning_rate = 1e-5
+n_epochs = 1000
+learning_rate = 5e-6
 weight_decay = 0.1
 batch_size = 1
 
