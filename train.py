@@ -35,7 +35,7 @@ masks_ext = "_seg.npy"
 
 # model = models.CellposeModel(gpu=True)
 
-new_model_path = './models/model_during_post'
+new_model_path = './models/model_1'
 model = models.CellposeModel(gpu=True,
                              pretrained_model=new_model_path)
 
@@ -50,7 +50,7 @@ model_name = "model_bleo"
 
 # default training params
 n_epochs = 1000
-learning_rate = 5e-6
+learning_rate = 1e-5
 weight_decay = 0.1
 batch_size = 1
 

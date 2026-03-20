@@ -44,15 +44,15 @@ def has_holes_3d(vol, connectivity=1):
 def keep_k_component(masks, top_k=1):
     # masks: shape (Z, X, Y), binary (0/1 or False/True)
     binary = masks > 0
-
     # 26-连通（最常用，3D 里算“接触”就连）
     structure = np.ones((3, 3, 3), dtype=int)
-
     labeled, num_components = ndi.label(binary, structure=structure)
     print("不连通区块数:", num_components)
 
+    if num_components == 0:
+        return np.zeros_like(binary, dtype=bool)
+    
     sizes = ndi.sum(binary, labeled, index=range(1, num_components+1))
-    top_k = 1
     top_labels = np.argsort(sizes)[-top_k:] + 1   # label 从 1 开始
     mask_top = np.isin(labeled, top_labels)
     return mask_top
@@ -100,6 +100,10 @@ def plot_3d_save(masks, save_path=None):
 
 
 structure = np.ones((3, 3, 3), dtype=bool)
+### reduce influnce from z
+# structure = np.zeros((3, 3, 3), dtype=bool)
+# structure[1, :, :] = True
+# structure[:, 1, 1] = True
 
 
 ### load dataset
@@ -148,7 +152,6 @@ for root_path in root_path_list:
 
     lung = volume*masks
     # thr = np.percentile(lung, 99.5)  # tune 95–99.5
-    lung_bright_bin = lung > 50
 
     mask_dir = os.path.join(root_path, type_data+'_2_mask')
     over_dir = os.path.join(root_path, type_data+'_2_mask_overlap')

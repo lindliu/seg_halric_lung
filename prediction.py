@@ -114,7 +114,7 @@ def plot_3d_save(masks, save_path=None):
 num_re = re.compile(r'(\d+)(?!.*\d)')
 
 
-type_data = 'bleo'  # 'model_during_post' # 'control_baseline' #  
+type_data =  'model_during_post' # 'bleo'  # 'control_baseline' #  
 ### load model
 if type_data == 'control_baseline':
     new_model_path = './models/model_control_baseline'
@@ -156,7 +156,7 @@ if type_data == 'bleo':
                     './data/Rat MIR//Rat 12',
                     './data/Rat MIR//Rat 13']
 
-
+cellprob_threshold = -1
 for root_path in root_path_list:
     print(root_path)
     type_data = os.path.split(root_path)[1]
@@ -175,11 +175,13 @@ for root_path in root_path_list:
     # computes flows from 2D slices and combines into 3D flows to create masks
     masks_, flows, _ = model.eval(volume, z_axis=0, channel_axis=None,
                                     batch_size=32,
-                                    do_3D=True, flow3D_smooth=1)
+                                    do_3D=True, 
+                                    cellprob_threshold=cellprob_threshold, 
+                                    flow3D_smooth=1)
     masks_ = masks_!=0
     # plot_3d_show(masks)
-    np.save(os.path.join(root_path, type_data+'_masks.npy'), masks_)
-    plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+'_masks.html'))
+    np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
+    plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
 
     # ### keep top k components
     # masks = keep_k_component(masks_, top_k=1)
