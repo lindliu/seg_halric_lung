@@ -118,8 +118,19 @@ def dcm_to_tif_float32(dcm_path, tif_path, step_y=1, step_x=1, apply_rescale=Fal
 # root_path = glob.glob('./data/Rat MIR/Rat 19_post_VILI')[0]
 # root_path = glob.glob('./data/Rat MIR/Rat 18')[0]
 # root_paths = glob.glob('./data/Rat MIR/Rat 11_baseline_11')
-# root_paths = ['./data/Rat MIR/Rat 4', './data/Rat MIR/Rat 12', './data/Rat MIR/Rat 20']
-root_paths = ['./data/Rat MIR/Rat 13']
+root_paths = [
+            # './data/Rat MIR/Rat 9_during-VILI_9',
+            # './data/Rat MIR/Rat 9_post_VILI_9',
+            # './data/Rat MIR/Rat 11_during-VILI_11',
+            # './data/Rat MIR/Rat 11_post-VILI_11',
+            # './data/Rat MIR/Rat 14_during-VILI_14',
+            # './data/Rat MIR/Rat 14_post-VILI_14',
+            # './data/Rat MIR/Rat 16_during-VILI_16',
+            './data/Rat MIR/Rat 19_during-VILI_19',
+            './data/Rat MIR/Rat 19_post-VILI_19']
+# root_paths = ['./data/Rat MIR/Rat 4', './data/Rat MIR/Rat 20']
+# root_paths = ['./data/Rat MIR/Rat 12']
+# root_paths = ['./data/Rat MIR/Rat 13']
 
 # root_paths = glob.glob('./data/Rat MIR/*')
 print(root_paths)
@@ -147,9 +158,11 @@ for root_path in root_paths:
     step_x = int(0.1572/spacing_zyx[2])
 
     # crop = None
-    # crop = [670,670+1024, 390,390+1024]
-    # crop = [670,670+1024, 480,480+1024]  # 4,12,20
-    crop = [520,520+1024, 390,390+1024]  # 13
+    crop = [670,670+1024, 390,390+1024]
+    # crop = [620,620+900, 390,390+1024] # 9,11,14,16 during and post
+    # crop = [800,800+800, 600,600+860]  # 4, 20
+    # crop = [800,800+800, 620,620+900]  # 12
+    # crop = [600,600+800, 430,430+900]  # 13
     step_z,step_y,step_x = 1,1,1
 
     sorted_paths = sorted_paths[::step_z]
