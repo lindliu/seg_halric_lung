@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 from scipy import ndimage as ndi
 from skimage.morphology import remove_small_objects, remove_small_holes, ball, binary_opening, skeletonize
+from cellpose import dynamics
 
 
 
@@ -99,6 +100,7 @@ def plot_3d_save(masks, save_path=None):
         fig.write_html(save_path)
 
 
+
 structure = np.ones((3, 3, 3), dtype=bool)
 ### reduce influnce from z
 # structure = np.zeros((3, 3, 3), dtype=bool)
@@ -112,6 +114,17 @@ num_re = re.compile(r'(\d+)(?!.*\d)')
 # root_path_list = ['./data/Rat MIR/Rat 19',\
 #                   './data/Rat MIR/Rat 17']
 root_path_list = glob.glob('./data/Rat MIR/*')
+root_path_list = ['./data/Rat MIR/Rat 9_during-VILI_9',
+                    './data/Rat MIR/Rat 9_post_VILI_9',
+                    './data/Rat MIR/Rat 11_during-VILI_11',
+                    './data/Rat MIR/Rat 11_post-VILI_11',
+                    './data/Rat MIR/Rat 14_during-VILI_14',
+                    './data/Rat MIR/Rat 14_post-VILI_14',
+                    './data/Rat MIR/Rat 16_during-VILI_16',
+                    './data/Rat MIR/Rat 19_during-VILI_19',
+                    './data/Rat MIR/Rat 19_post-VILI_19']
+
+
 
 for root_path in root_path_list:
     type_data = os.path.split(root_path)[1]
@@ -130,10 +143,25 @@ for root_path in root_path_list:
         volume[i] = plt.imread(path_list[i])[:,:]
 
     ### get lung masks
-    masks_ = np.load(os.path.join(root_path, type_data+'_masks.npy'))
+    # masks_ = np.load(os.path.join(root_path, type_data+'_masks.npy'))
     # plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+'_masks.html'))
     # plot_3d_show(masks_)
+    cellprob_threshold = -10
+    dP = np.load(os.path.join(root_path, type_data+'_flow_dP.npy'))          # 3D flow field
+    cellprob = np.load(os.path.join(root_path, type_data+'_flow_cellprob.npy'))   # 3D cell probability
+    # run Cellpose dynamics and make masks
+    # niter can be tuned; this is a common default-style choice
+    masks_ = dynamics.compute_masks(
+        dP,
+        cellprob,
+        cellprob_threshold=cellprob_threshold,
+        do_3D=True,
+    )
+    masks_ = masks_!=0
+    np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
+    plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
 
+    
     ### keep top k components
     masks = keep_k_component(masks_, top_k=1)
     
@@ -146,16 +174,16 @@ for root_path in root_path_list:
     masks[holes_mask] = True
 
     ### save results
-    np.save(os.path.join(root_path, type_data+'_masks_modified.npy'), masks)
-    plot_3d_save(masks, save_path=os.path.join(root_path, type_data+'_masks_modified.html'))
+    np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}_modified.npy'), masks)
+    plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}_modified.html'))
     # masks = np.load(os.path.join(root_path, type_data+'_masks_modified.npy'))
 
     lung = volume*masks
     # thr = np.percentile(lung, 99.5)  # tune 95–99.5
 
-    mask_dir = os.path.join(root_path, type_data+'_2_mask')
-    over_dir = os.path.join(root_path, type_data+'_2_mask_overlap')
-    lung_dir = os.path.join(root_path, type_data+'_2_lung')
+    mask_dir = os.path.join(root_path, type_data+f'_2_mask_{abs(cellprob_threshold)}')
+    over_dir = os.path.join(root_path, type_data+f'_2_mask_overlap_{abs(cellprob_threshold)}')
+    lung_dir = os.path.join(root_path, type_data+f'_2_lung_{abs(cellprob_threshold)}')
     # lung1_dir = os.path.join(root_path, type_data+'_2_lung_bright')
     os.makedirs(mask_dir, exist_ok=True)
     os.makedirs(over_dir, exist_ok=True)

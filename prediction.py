@@ -154,61 +154,67 @@ if type_data == 'bleo':
                     './data/Rat MIR//Rat 12',
                     './data/Rat MIR//Rat 13']
 
-# cellprob_threshold = -1.5
-for cellprob_threshold in [0,-0.5,-1,-2,-2.5]:
-    for root_path in root_path_list:
-        print(root_path)
-        type_data = os.path.split(root_path)[1]
+# cellprob_threshold = -10
+# for cellprob_threshold in [0,-0.5,-1,-2,-2.5]:
+for root_path in root_path_list:
+    print(root_path)
+    type_data = os.path.split(root_path)[1]
 
-        path_list = glob(os.path.join(root_path, '2_tif/*.tif'))
-        path_list = sorted(path_list, key=lambda x: int(num_re.search(os.path.split(x)[1]).group(1)))
-        #path_list = path_list[50:250]
+    path_list = glob(os.path.join(root_path, '2_tif/*.tif'))
+    path_list = sorted(path_list, key=lambda x: int(num_re.search(os.path.split(x)[1]).group(1)))
+    #path_list = path_list[50:250]
 
-        Z = len(path_list)
-        X, Y = plt.imread(path_list[0]).shape
+    Z = len(path_list)
+    X, Y = plt.imread(path_list[0]).shape
 
-        volume = np.zeros([Z, X, Y]).astype('float32')
-        for i in range(Z):
-            volume[i] = plt.imread(path_list[i])[:,:]
+    volume = np.zeros([Z, X, Y]).astype('float32')
+    for i in range(Z):
+        volume[i] = plt.imread(path_list[i])[:,:]
 
-        # computes flows from 2D slices and combines into 3D flows to create masks
-        masks_, flows, _ = model.eval(volume, z_axis=0, channel_axis=None,
-                                        batch_size=32,
-                                        do_3D=True, 
-                                        cellprob_threshold=cellprob_threshold, 
-                                        flow3D_smooth=1)
-        masks_ = masks_!=0
-        print(masks_.sum())
-        # plot_3d_show(masks)
-        np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
-        plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
+    # computes flows from 2D slices and combines into 3D flows to create masks
+    masks_, flows, _ = model.eval(volume, z_axis=0, channel_axis=None,
+                                batch_size=1,
+                                do_3D=True, 
+                                flow3D_smooth=1)
 
-        # ### keep top k components
-        # masks = keep_k_component(masks_, top_k=1)
-        
-        # ### fill all holes
-        # has, num, holes_mask = has_holes_3d(masks, connectivity=1)
-        # print(f'the number of holes: {num}')
-        # masks[holes_mask] = True
+    dP       = flows[1]   # for mask computation
+    cellprob = flows[2]   # for mask computation
+    np.save(os.path.join(root_path, type_data+'_flow_dP.npy'), dP)
+    np.save(os.path.join(root_path, type_data+'_flow_cellprob.npy'), cellprob)
 
-        # ### save results
-        # np.save(os.path.join(root_path, type_data+'_1comp_masks.npy'), masks)
-        # plot_3d_save(masks, save_path=os.path.join(root_path, type_data+'_1comp_masks.html'))
+    masks = masks_!=0
+    print(masks.sum())
+    # plot_3d_show(masks)
+    np.save(os.path.join(root_path, type_data+f'_masksbinary_{abs(0)}.npy'), masks)
+    plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(0)}.html'))
 
-        # mask_dir = os.path.join(root_path, type_data+'_2_mask')
-        # over_dir = os.path.join(root_path, type_data+'_2_mask_overlap')
-        # os.makedirs(mask_dir, exist_ok=True)
-        # os.makedirs(over_dir, exist_ok=True)
 
-        # masks = ((masks!=0).astype(np.uint8) * 255)
-        # for i in range(masks.shape[0]):
-        #     tif_path = os.path.join(mask_dir, type_data+f'_mask_{i}.tif')
-        #     tiff.imwrite(tif_path, masks[i])
+    # ### keep top k components
+    # masks = keep_k_component(masks_, top_k=1)
+    
+    # ### fill all holes
+    # has, num, holes_mask = has_holes_3d(masks, connectivity=1)
+    # print(f'the number of holes: {num}')
+    # masks[holes_mask] = True
 
-        #     plt.figure()
-        #     plt.imshow(volume[i])
-        #     plt.imshow(masks[i], alpha=.25)
-        #     plt.savefig(os.path.join(over_dir, type_data+f'_mask_overlap_{i}.png'))
-        #     plt.close()
+    # ### save results
+    # np.save(os.path.join(root_path, type_data+'_1comp_masks.npy'), masks)
+    # plot_3d_save(masks, save_path=os.path.join(root_path, type_data+'_1comp_masks.html'))
+
+    # mask_dir = os.path.join(root_path, type_data+'_2_mask')
+    # over_dir = os.path.join(root_path, type_data+'_2_mask_overlap')
+    # os.makedirs(mask_dir, exist_ok=True)
+    # os.makedirs(over_dir, exist_ok=True)
+
+    # masks = ((masks!=0).astype(np.uint8) * 255)
+    # for i in range(masks.shape[0]):
+    #     tif_path = os.path.join(mask_dir, type_data+f'_mask_{i}.tif')
+    #     tiff.imwrite(tif_path, masks[i])
+
+    #     plt.figure()
+    #     plt.imshow(volume[i])
+    #     plt.imshow(masks[i], alpha=.25)
+    #     plt.savefig(os.path.join(over_dir, type_data+f'_mask_overlap_{i}.png'))
+    #     plt.close()
 
 
