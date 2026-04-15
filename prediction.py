@@ -114,7 +114,7 @@ def plot_3d_save(masks, save_path=None):
 num_re = re.compile(r'(\d+)(?!.*\d)')
 
 
-type_data = 'model_during_post' #  'bleo'  # 'control_baseline' #  
+type_data = 'control_baseline' #   'model_during_post' # 'bleo'  # 
 ### load model
 if type_data == 'control_baseline':
     new_model_path = './models/model_control_baseline'
@@ -135,7 +135,8 @@ if type_data == 'model_during_post':
     new_model_path = './models/model_during_post'
     model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
     # 9,10,11,14,16,19
-    root_path_list = ['./data/Rat MIR/Rat 9_during-VILI_9',
+    root_path_list = [
+                     './data/Rat MIR/Rat 9_during-VILI_9',
                       './data/Rat MIR/Rat 9_post_VILI_9',
                       './data/Rat MIR/Rat 11_during-VILI_11',
                       './data/Rat MIR/Rat 11_post-VILI_11',
@@ -150,9 +151,11 @@ if type_data == 'bleo':
     model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
     # 1,2,3,4,12,13
     # root_path_list = glob('./data/Rat MIR/*') 
-    root_path_list = ['./data/Rat MIR/Rat 4',
+    root_path_list = [
+                    './data/Rat MIR/Rat 4',
                     './data/Rat MIR//Rat 12',
-                    './data/Rat MIR//Rat 13']
+                    './data/Rat MIR//Rat 13'
+                    ]
 
 # cellprob_threshold = -10
 # for cellprob_threshold in [0,-0.5,-1,-2,-2.5]:
@@ -185,7 +188,7 @@ for root_path in root_path_list:
     masks = masks_!=0
     print(masks.sum())
     # plot_3d_show(masks)
-    np.save(os.path.join(root_path, type_data+f'_masksbinary_{abs(0)}.npy'), masks)
+    np.save(os.path.join(root_path, type_data+f'_masks_{abs(0)}.npy'), masks)
     plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(0)}.html'))
 
 

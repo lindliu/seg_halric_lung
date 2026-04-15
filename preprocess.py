@@ -71,7 +71,7 @@ def get_sorted_dicom_paths_3d(folder: str, series_uid: str | None = None):
 
     return sorted_paths, series_uid, spacing_zyx
 
-def dcm_to_tif_8bit(dcm_path, tif_path, step_y=1, step_x=1, crop=None, apply_rescale=False):
+def dcm_to_tif_8bit(dcm_path, tif_path, lo, hi, step_y=1, step_x=1, crop=None, apply_rescale=False):
     ds = pydicom.dcmread(dcm_path)
     arr = ds.pixel_array.astype(np.float32)
 
@@ -84,11 +84,10 @@ def dcm_to_tif_8bit(dcm_path, tif_path, step_y=1, step_x=1, crop=None, apply_res
     # crop = [650,1650,400,1400]
     if crop is not None:
         arr = arr[crop[0]:crop[1],crop[2]:crop[3]] # [325:825,200:700] #
-    
     arr = arr[::step_y, ::step_x]
 
-    # percentile window for display
-    lo, hi = np.percentile(arr, (.1, 99.9))
+    # # percentile window for display
+    # lo, hi = np.percentile(arr, (.1, 99.9))
     # lo, hi = arr.min(), arr.max()
     arr = np.clip(arr, lo, hi)
     arr8 = ((arr - lo) / (hi - lo + 1e-10) * 255.0).astype(np.uint8)
@@ -113,21 +112,64 @@ def dcm_to_tif_float32(dcm_path, tif_path, step_y=1, step_x=1, apply_rescale=Fal
     tiff.imwrite(tif_path, arr.astype(np.float32))
 
 
+def find_lo_hi_from_dcms(paths, percentiles=(1, 99), crop=None, dtype='int16', step_y=1, step_x=1):
+    if dtype=='uint8':
+        hist = np.zeros(256, dtype=np.uint8)
+    elif dtype=='int16':
+        hist = np.zeros(65536, dtype=np.int64)
+
+    for path in paths:
+        ds = pydicom.dcmread(path)
+        arr = ds.pixel_array
+
+        if crop is not None:
+            arr = arr[crop[0]:crop[1],crop[2]:crop[3]] # [325:825,200:700] #
+        arr = arr[::step_y, ::step_x]
+        
+        if dtype=='uint8':
+            hist += np.bincount(arr.ravel(), minlength=256)
+        if dtype=='int16':
+            vals = arr.astype(np.int32).ravel() + 32768
+            hist += np.bincount(vals, minlength=65536)
+
+    cdf = np.cumsum(hist)
+    total = cdf[-1]
+
+    p_lo = total * (percentiles[0] / 100.0)
+    p_hi = total * (percentiles[1] / 100.0)
+
+    lo = np.searchsorted(cdf, p_lo)
+    hi = np.searchsorted(cdf, p_hi)
+
+    if dtype=='int16':
+        lo = lo - 32768
+        hi = hi - 32768
+    return int(lo), int(hi)
+
 # specify your image path
-# root_path = glob.glob('./data/Rat MIR/Rat 19_during_VILI')[0]
-# root_path = glob.glob('./data/Rat MIR/Rat 19_post_VILI')[0]
-# root_path = glob.glob('./data/Rat MIR/Rat 18')[0]
-# root_paths = glob.glob('./data/Rat MIR/Rat 11_baseline_11')
+# root_path = glob.glob('./data/Rat MIR/*')
 root_paths = [
-            # './data/Rat MIR/Rat 9_during-VILI_9',
-            # './data/Rat MIR/Rat 9_post_VILI_9',
-            # './data/Rat MIR/Rat 11_during-VILI_11',
-            # './data/Rat MIR/Rat 11_post-VILI_11',
-            # './data/Rat MIR/Rat 14_during-VILI_14',
-            # './data/Rat MIR/Rat 14_post-VILI_14',
-            # './data/Rat MIR/Rat 16_during-VILI_16',
+            './data/Rat MIR/Rat 7',
+            './data/Rat MIR/Rat 15',
+            './data/Rat MIR/Rat 17',
+            './data/Rat MIR/Rat 18',
+            './data/Rat MIR/Rat 19_baseline_19',
             './data/Rat MIR/Rat 19_during-VILI_19',
-            './data/Rat MIR/Rat 19_post-VILI_19']
+            './data/Rat MIR/Rat 19_post-VILI_19',
+            './data/Rat MIR/Rat 14_baseline_14',
+            './data/Rat MIR/Rat 14_during-VILI_14',
+            './data/Rat MIR/Rat 14_post-VILI_14',
+            './data/Rat MIR/Rat 16_baseline_16',
+            './data/Rat MIR/Rat 16_during-VILI_16'
+            ]
+# root_paths = [
+#             './data/Rat MIR/Rat 9_baseline_9',
+#             './data/Rat MIR/Rat 9_during-VILI_9',
+#             './data/Rat MIR/Rat 9_post_VILI_9',
+#             './data/Rat MIR/Rat 11_baseline_11',
+#             './data/Rat MIR/Rat 11_during-VILI_11',
+#             './data/Rat MIR/Rat 11_post-VILI_11'
+#             ]
 # root_paths = ['./data/Rat MIR/Rat 4', './data/Rat MIR/Rat 20']
 # root_paths = ['./data/Rat MIR/Rat 12']
 # root_paths = ['./data/Rat MIR/Rat 13']
@@ -157,22 +199,28 @@ for root_path in root_paths:
     step_y = int(0.1572/spacing_zyx[1])
     step_x = int(0.1572/spacing_zyx[2])
 
-    # crop = None
-    crop = [670,670+1024, 390,390+1024]
-    # crop = [620,620+900, 390,390+1024] # 9,11,14,16 during and post
-    # crop = [800,800+800, 600,600+860]  # 4, 20
+    crop = [670,670+1024, 390,390+1024]  # 7,15,17,18, 14,16,19
+    # crop = [620,620+900, 390,390+1024] # 9,11
+    # crop = [800,800+800, 600,600+860]  # 4,20
     # crop = [800,800+800, 620,620+900]  # 12
     # crop = [600,600+800, 430,430+900]  # 13
     step_z,step_y,step_x = 1,1,1
 
     sorted_paths = sorted_paths[::step_z]
+    ds = pydicom.dcmread(sorted_paths[0])
+    dtype = ds.pixel_array.dtype
+    print(ds.pixel_array.dtype, ds.pixel_array.min(), ds.pixel_array.max())
+    
+    # lo, hi = find_lo_hi_from_dcms(sorted_paths, percentiles=(.5, 99.5), crop=crop, dtype=dtype, step_y=step_y, step_x=step_x)
+    lo, hi = -1000, 2500
+    print(lo, hi)
     for i in range(len(sorted_paths)):
         dcm_path = sorted_paths[i]
         
         tif_path_ = os.path.join(tif_path, data_name+f'_tif_{i:04d}.tif')
         
         # dcm_to_tif_float32(dcm_path_, tif_path_)
-        dcm_to_tif_8bit(dcm_path, tif_path_, step_y=step_y, step_x=step_x, crop=crop)
+        dcm_to_tif_8bit(dcm_path, tif_path_, lo=lo, hi=hi, step_y=step_y, step_x=step_x, crop=crop,apply_rescale=True)
 
 
 

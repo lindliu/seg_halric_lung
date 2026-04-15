@@ -24,9 +24,9 @@ if core.use_gpu()==False:
 # torch.cuda.ipc_collect()   
 
 
-# train_dir = './data/annotation/train/control_baseline'
+train_dir = './data/annotation/train/control_baseline'
 # train_dir = './data/annotation/train/during_post'
-train_dir = './data/annotation/train/bleo'
+# train_dir = './data/annotation/train/bleo'
 
 test_dir = './data/annotation/test/Rat_17_Non_gated_scan'
 masks_ext = "_seg.npy"
@@ -46,7 +46,7 @@ import os.path
 
 # model_name = "model_control_baseline"
 # model_name = "model_during_post"
-model_name = "model_bleo"
+model_name = "model_"+os.path.split(train_dir)[1]
 
 # default training params
 n_epochs = 1000

@@ -12,7 +12,9 @@ import matplotlib.pyplot as plt
 from scipy import ndimage as ndi
 from skimage.morphology import remove_small_objects, remove_small_holes, ball, binary_opening, skeletonize
 from cellpose import dynamics
+import torch
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 
@@ -146,64 +148,78 @@ for root_path in root_path_list:
     # masks_ = np.load(os.path.join(root_path, type_data+'_masks.npy'))
     # plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+'_masks.html'))
     # plot_3d_show(masks_)
-    cellprob_threshold = -10
+
     dP = np.load(os.path.join(root_path, type_data+'_flow_dP.npy'))          # 3D flow field
     cellprob = np.load(os.path.join(root_path, type_data+'_flow_cellprob.npy'))   # 3D cell probability
-    # run Cellpose dynamics and make masks
-    # niter can be tuned; this is a common default-style choice
-    masks_ = dynamics.compute_masks(
-        dP,
-        cellprob,
-        cellprob_threshold=cellprob_threshold,
-        do_3D=True,
-    )
-    masks_ = masks_!=0
-    np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
-    plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
+    print(dP.shape, cellprob.shape)
+    for cellprob_threshold in [-8,-4,-2,-1,-.5]:
+        print(cellprob_threshold)
+        # run Cellpose dynamics and make masks
+        # niter can be tuned; this is a common default-style choice
+        # masks_ = dynamics.compute_masks(
+        #     dP,
+        #     cellprob,
+        #     cellprob_threshold=cellprob_threshold,
+        #     do_3D=True,
+        #     device=device
+        # )
+        shape = volume.shape
+        masks_ = dynamics.resize_and_compute_masks(
+                dP, 
+                cellprob, 
+                cellprob_threshold=cellprob_threshold,
+                do_3D=True,
+                min_size=15, max_size_fraction=.4, 
+                resize=shape[:3] if (np.array(dP.shape[-3:])!=np.array(shape[:3])).sum() 
+                        else None,
+                device=device)
+        masks_ = masks_!=0
+        # np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
+        plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
 
-    
-    ### keep top k components
-    masks = keep_k_component(masks_, top_k=1)
-    
-    ### closing operation, fill small hole
-    masks = ndi.binary_closing(masks, structure, iterations=3)
-    
-    ### fill all holes
-    has, num, holes_mask = has_holes_3d(masks, connectivity=1)
-    print(f'the number of holes: {num}')
-    masks[holes_mask] = True
+        
+        ### keep top k components
+        masks = keep_k_component(masks_, top_k=1)
+        
+        ### closing operation, fill small hole
+        masks = ndi.binary_closing(masks, structure, iterations=3)
+        
+        ### fill all holes
+        has, num, holes_mask = has_holes_3d(masks, connectivity=1)
+        print(f'the number of holes: {num}')
+        masks[holes_mask] = True
 
-    ### save results
-    np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}_modified.npy'), masks)
-    plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}_modified.html'))
-    # masks = np.load(os.path.join(root_path, type_data+'_masks_modified.npy'))
+        ### save results
+        np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}_modified.npy'), masks)
+        plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}_modified.html'))
+        # masks = np.load(os.path.join(root_path, type_data+'_masks_modified.npy'))
 
-    lung = volume*masks
-    # thr = np.percentile(lung, 99.5)  # tune 95–99.5
+        lung = volume*masks
+        # thr = np.percentile(lung, 99.5)  # tune 95–99.5
 
-    mask_dir = os.path.join(root_path, type_data+f'_2_mask_{abs(cellprob_threshold)}')
-    over_dir = os.path.join(root_path, type_data+f'_2_mask_overlap_{abs(cellprob_threshold)}')
-    lung_dir = os.path.join(root_path, type_data+f'_2_lung_{abs(cellprob_threshold)}')
-    # lung1_dir = os.path.join(root_path, type_data+'_2_lung_bright')
-    os.makedirs(mask_dir, exist_ok=True)
-    os.makedirs(over_dir, exist_ok=True)
-    os.makedirs(lung_dir, exist_ok=True)
-    # os.makedirs(lung1_dir, exist_ok=True)
+        mask_dir = os.path.join(root_path, type_data+f'_2_mask_{abs(cellprob_threshold)}')
+        over_dir = os.path.join(root_path, type_data+f'_2_mask_overlap_{abs(cellprob_threshold)}')
+        lung_dir = os.path.join(root_path, type_data+f'_2_lung_{abs(cellprob_threshold)}')
+        # lung1_dir = os.path.join(root_path, type_data+'_2_lung_bright')
+        os.makedirs(mask_dir, exist_ok=True)
+        os.makedirs(over_dir, exist_ok=True)
+        os.makedirs(lung_dir, exist_ok=True)
+        # os.makedirs(lung1_dir, exist_ok=True)
 
 
-    masks = ((masks!=0).astype(np.uint8) * 255)
-    for i in range(masks.shape[0]):
-        tif_path = os.path.join(mask_dir, f'mask_{i}.tif')
-        tiff.imwrite(tif_path, masks[i])
+        masks = ((masks!=0).astype(np.uint8) * 255)
+        for i in range(masks.shape[0]):
+            tif_path = os.path.join(mask_dir, f'mask_{i}.tif')
+            tiff.imwrite(tif_path, masks[i])
 
-        lung_path = os.path.join(lung_dir, f'lung_{i}.tif')
-        tiff.imwrite(lung_path, lung[i])
+            lung_path = os.path.join(lung_dir, f'lung_{i}.tif')
+            tiff.imwrite(lung_path, lung[i])
 
-        # lung1_path = os.path.join(lung1_dir, f'lung_{i}.tif')
-        # tiff.imwrite(lung1_path, lung[i]*lung_bright_bin[i])
+            # lung1_path = os.path.join(lung1_dir, f'lung_{i}.tif')
+            # tiff.imwrite(lung1_path, lung[i]*lung_bright_bin[i])
 
-        plt.figure()
-        plt.imshow(volume[i])
-        plt.imshow(masks[i], alpha=.25)
-        plt.savefig(os.path.join(over_dir, f'mask_overlap_{i}.png'))
-        plt.close()
+            plt.figure()
+            plt.imshow(volume[i])
+            plt.imshow(masks[i], alpha=.25)
+            plt.savefig(os.path.join(over_dir, f'mask_overlap_{i}.png'))
+            plt.close()
