@@ -116,15 +116,17 @@ num_re = re.compile(r'(\d+)(?!.*\d)')
 # root_path_list = ['./data/Rat MIR/Rat 19',\
 #                   './data/Rat MIR/Rat 17']
 root_path_list = glob.glob('./data/Rat MIR/*')
-root_path_list = ['./data/Rat MIR/Rat 9_during-VILI_9',
-                    './data/Rat MIR/Rat 9_post_VILI_9',
-                    './data/Rat MIR/Rat 11_during-VILI_11',
-                    './data/Rat MIR/Rat 11_post-VILI_11',
-                    './data/Rat MIR/Rat 14_during-VILI_14',
-                    './data/Rat MIR/Rat 14_post-VILI_14',
-                    './data/Rat MIR/Rat 16_during-VILI_16',
-                    './data/Rat MIR/Rat 19_during-VILI_19',
-                    './data/Rat MIR/Rat 19_post-VILI_19']
+# root_path_list = [
+#                     './data/Rat MIR/Rat 9_during-VILI_9',
+                    # './data/Rat MIR/Rat 9_post_VILI_9',
+#                     './data/Rat MIR/Rat 11_during-VILI_11',
+#                     './data/Rat MIR/Rat 11_post-VILI_11',
+#                     './data/Rat MIR/Rat 14_during-VILI_14',
+#                     './data/Rat MIR/Rat 14_post-VILI_14',
+#                     './data/Rat MIR/Rat 16_during-VILI_16',
+#                     './data/Rat MIR/Rat 19_during-VILI_19',
+#                     './data/Rat MIR/Rat 19_post-VILI_19'
+                    # ]
 
 
 
@@ -144,38 +146,39 @@ for root_path in root_path_list:
     for i in range(Z):
         volume[i] = plt.imread(path_list[i])[:,:]
 
-    ### get lung masks
-    # masks_ = np.load(os.path.join(root_path, type_data+'_masks.npy'))
+    ## get lung masks
+    masks_ = np.load(os.path.join(root_path, type_data+'_masks_0.npy')) != 0
     # plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+'_masks.html'))
     # plot_3d_show(masks_)
 
-    dP = np.load(os.path.join(root_path, type_data+'_flow_dP.npy'))          # 3D flow field
-    cellprob = np.load(os.path.join(root_path, type_data+'_flow_cellprob.npy'))   # 3D cell probability
-    print(dP.shape, cellprob.shape)
-    for cellprob_threshold in [-8,-4,-2,-1,-.5]:
+    # dP = np.load(os.path.join(root_path, type_data+'_flow_dP.npy'))          # 3D flow field
+    # cellprob = np.load(os.path.join(root_path, type_data+'_flow_cellprob.npy'))   # 3D cell probability
+    # print(dP.shape, cellprob.shape)
+    for cellprob_threshold in [0]:#[-4,-2,-1,-.5,0]:
         print(cellprob_threshold)
         # run Cellpose dynamics and make masks
-        # niter can be tuned; this is a common default-style choice
-        # masks_ = dynamics.compute_masks(
-        #     dP,
-        #     cellprob,
-        #     cellprob_threshold=cellprob_threshold,
-        #     do_3D=True,
-        #     device=device
-        # )
-        shape = volume.shape
-        masks_ = dynamics.resize_and_compute_masks(
-                dP, 
-                cellprob, 
-                cellprob_threshold=cellprob_threshold,
-                do_3D=True,
-                min_size=15, max_size_fraction=.4, 
-                resize=shape[:3] if (np.array(dP.shape[-3:])!=np.array(shape[:3])).sum() 
-                        else None,
-                device=device)
-        masks_ = masks_!=0
-        # np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
-        plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
+        # # niter can be tuned; this is a common default-style choice
+        # # masks_ = dynamics.compute_masks(
+        # #     dP,
+        # #     cellprob,
+        # #     cellprob_threshold=cellprob_threshold,
+        # #     do_3D=True,
+        # #     device=device
+        # # )
+        # shape = volume.shape
+        # masks_ = dynamics.resize_and_compute_masks(
+        #         dP, 
+        #         cellprob, 
+        #         cellprob_threshold=cellprob_threshold,
+        #         do_3D=True,
+        #         min_size=5, 
+        #         max_size_fraction=.6, 
+        #         resize=shape[:3] if (np.array(dP.shape[-3:])!=np.array(shape[:3])).sum() 
+        #                 else None,
+        #         device=device)
+        # masks_ = masks_!=0
+        # # np.save(os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.npy'), masks_)
+        # plot_3d_save(masks_, save_path=os.path.join(root_path, type_data+f'_masks_{abs(cellprob_threshold)}.html'))
 
         
         ### keep top k components

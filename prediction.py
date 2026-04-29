@@ -115,109 +115,127 @@ num_re = re.compile(r'(\d+)(?!.*\d)')
 
 
 type_data = 'control_baseline' #   'model_during_post' # 'bleo'  # 
-### load model
-if type_data == 'control_baseline':
-    new_model_path = './models/model_control_baseline'
-    model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
-    #7,9,10,11,14,15,16,17,18,19,20,#1,2,4,5,6
-    root_path_list = [
-                      './data/Rat MIR/Rat 7',
-                      './data/Rat MIR/Rat 9_baseline_9',
-                      './data/Rat MIR/Rat 11_baseline_11',
-                      './data/Rat MIR/Rat 14_baseline_14',
-                      './data/Rat MIR/Rat 16_baseline_16',
-                      './data/Rat MIR/Rat 17',
-                      './data/Rat MIR/Rat 18',
-                      './data/Rat MIR/Rat 19_baseline_19',
-                      './data/Rat MIR/Rat 20']
+for type_data in ['model_during_post', 'control_baseline']: #['control_baseline', 'model_during_post', 'bleo']:
 
-if type_data == 'model_during_post':
-    new_model_path = './models/model_during_post'
-    model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
-    # 9,10,11,14,16,19
-    root_path_list = [
-                     './data/Rat MIR/Rat 9_during-VILI_9',
-                      './data/Rat MIR/Rat 9_post_VILI_9',
-                      './data/Rat MIR/Rat 11_during-VILI_11',
-                      './data/Rat MIR/Rat 11_post-VILI_11',
-                      './data/Rat MIR/Rat 14_during-VILI_14',
-                      './data/Rat MIR/Rat 14_post-VILI_14',
-                      './data/Rat MIR/Rat 16_during-VILI_16',
-                      './data/Rat MIR/Rat 19_during-VILI_19',
-                      './data/Rat MIR/Rat 19_post-VILI_19']
+    ### load model
+    if type_data == 'control_baseline':
+        new_model_path = './models/model_control_baseline'
+        model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+        #7,9,10,11,14,15,16,17,18,19,20,#1,2,4,5,6
+        root_path_list = [
+                        # './data/Rat MIR/Rat 1_control',
+                        # './data/Rat MIR/Rat 2_control',
+                        # './data/Rat MIR/Rat 4_control',
+                        # './data/Rat MIR/Rat 5_control',
+                        # './data/Rat MIR/Rat 6_control',
+                        './data/Rat MIR/Rat 15_control',
+                        #   './data/Rat MIR/Rat 7_control',
+                        #   './data/Rat MIR/Rat 9_baseline_9',
+                        #   './data/Rat MIR/Rat 11_baseline_11',
+                        #   './data/Rat MIR/Rat 14_baseline_14',
+                        #   './data/Rat MIR/Rat 15_control',
+                        #   './data/Rat MIR/Rat 16_baseline_16',
+                        #   './data/Rat MIR/Rat 17_control',
+                        #   './data/Rat MIR/Rat 18_control',
+                        #   './data/Rat MIR/Rat 19_baseline_19',
+                        #   './data/Rat MIR/Rat 20_control'
+                        ]
 
-if type_data == 'bleo':
-    new_model_path = './models/bleo'
-    model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
-    # 1,2,3,4,12,13
-    # root_path_list = glob('./data/Rat MIR/*') 
-    root_path_list = [
-                    './data/Rat MIR/Rat 4',
-                    './data/Rat MIR//Rat 12',
-                    './data/Rat MIR//Rat 13'
-                    ]
+    if type_data == 'model_during_post':
+        new_model_path = './models/model_during_post'
+        model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+        # 9,10,11,14,16,19
+        root_path_list = [
+                        # './data/Rat MIR/Rat 10_baseline_10',
+                        # './data/Rat MIR/Rat 10_during-VILI_10',
+                        # './data/Rat MIR/Rat 10_post-VILI_10',
+                        './data/Rat MIR/Rat 16_post-VILI_16'
+                        #  './data/Rat MIR/Rat 9_during-VILI_9',
+                        #   './data/Rat MIR/Rat 9_post_VILI_9',
+                        #   './data/Rat MIR/Rat 11_during-VILI_11',
+                        #   './data/Rat MIR/Rat 11_post-VILI_11',
+                        #   './data/Rat MIR/Rat 14_during-VILI_14',
+                        #   './data/Rat MIR/Rat 14_post-VILI_14',
+                        #   './data/Rat MIR/Rat 16_during-VILI_16',
+                        #   './data/Rat MIR/Rat 19_during-VILI_19',
+                        #   './data/Rat MIR/Rat 19_post-VILI_19'
+                        ]
 
-# cellprob_threshold = -10
-# for cellprob_threshold in [0,-0.5,-1,-2,-2.5]:
-for root_path in root_path_list:
-    print(root_path)
-    type_data = os.path.split(root_path)[1]
+    if type_data == 'bleo':
+        new_model_path = './models/bleo'
+        model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
+        # 1,2,3,4,12,13
+        # root_path_list = glob('./data/Rat MIR/*') 
+        root_path_list = [
+                        './data/Rat MIR/Rat 1_bleo',
+                        './data/Rat MIR/Rat 2_bleo',
 
-    path_list = glob(os.path.join(root_path, '2_tif/*.tif'))
-    path_list = sorted(path_list, key=lambda x: int(num_re.search(os.path.split(x)[1]).group(1)))
-    #path_list = path_list[50:250]
+                        # './data/Rat MIR/Rat 4_bleo',
+                        # './data/Rat MIR//Rat 12_bleo',
+                        # './data/Rat MIR//Rat 13_bleo'
+                        ]
 
-    Z = len(path_list)
-    X, Y = plt.imread(path_list[0]).shape
+    # cellprob_threshold = -10
+    # for cellprob_threshold in [0,-0.5,-1,-2,-2.5]:
+    for root_path in root_path_list:
+        print(root_path)
+        type_data = os.path.split(root_path)[1]
 
-    volume = np.zeros([Z, X, Y]).astype('float32')
-    for i in range(Z):
-        volume[i] = plt.imread(path_list[i])[:,:]
+        path_list = glob(os.path.join(root_path, '2_tif/*.tif'))
+        path_list = sorted(path_list, key=lambda x: int(num_re.search(os.path.split(x)[1]).group(1)))
+        #path_list = path_list[50:250]
 
-    # computes flows from 2D slices and combines into 3D flows to create masks
-    masks_, flows, _ = model.eval(volume, z_axis=0, channel_axis=None,
-                                batch_size=1,
-                                do_3D=True, 
-                                flow3D_smooth=1)
+        Z = len(path_list)
+        X, Y = plt.imread(path_list[0]).shape
 
-    dP       = flows[1]   # for mask computation
-    cellprob = flows[2]   # for mask computation
-    np.save(os.path.join(root_path, type_data+'_flow_dP.npy'), dP)
-    np.save(os.path.join(root_path, type_data+'_flow_cellprob.npy'), cellprob)
+        volume = np.zeros([Z, X, Y]).astype('float32')
+        for i in range(Z):
+            volume[i] = plt.imread(path_list[i])[:,:]
 
-    masks = masks_!=0
-    print(masks.sum())
-    # plot_3d_show(masks)
-    np.save(os.path.join(root_path, type_data+f'_masks_{abs(0)}.npy'), masks)
-    plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(0)}.html'))
+        # computes flows from 2D slices and combines into 3D flows to create masks
+        masks_, flows, _ = model.eval(volume, z_axis=0, channel_axis=None,
+                                    batch_size=1,
+                                    do_3D=True, 
+                                    flow3D_smooth=1)
+
+        # dP       = flows[1]   # for mask computation
+        # cellprob = flows[2]   # for mask computation
+        # np.save(os.path.join(root_path, type_data+'_flow_dP.npy'), dP)
+        # np.save(os.path.join(root_path, type_data+'_flow_cellprob.npy'), cellprob)
+
+        masks = masks_!=0
+        print(masks.sum())
+        # plot_3d_show(masks)
+        np.save(os.path.join(root_path, type_data+f'_masks_{abs(0)}.npy'), masks)
+        plot_3d_save(masks, save_path=os.path.join(root_path, type_data+f'_masks_{abs(0)}.html'))
 
 
-    # ### keep top k components
-    # masks = keep_k_component(masks_, top_k=1)
-    
-    # ### fill all holes
-    # has, num, holes_mask = has_holes_3d(masks, connectivity=1)
-    # print(f'the number of holes: {num}')
-    # masks[holes_mask] = True
+        # ### keep top k components
+        # masks = keep_k_component(masks_, top_k=1)
+        
+        # ### fill all holes
+        # has, num, holes_mask = has_holes_3d(masks, connectivity=1)
+        # print(f'the number of holes: {num}')
+        # masks[holes_mask] = True
 
-    # ### save results
-    # np.save(os.path.join(root_path, type_data+'_1comp_masks.npy'), masks)
-    # plot_3d_save(masks, save_path=os.path.join(root_path, type_data+'_1comp_masks.html'))
+        # ### save results
+        # np.save(os.path.join(root_path, type_data+'_1comp_masks.npy'), masks)
+        # plot_3d_save(masks, save_path=os.path.join(root_path, type_data+'_1comp_masks.html'))
 
-    # mask_dir = os.path.join(root_path, type_data+'_2_mask')
-    # over_dir = os.path.join(root_path, type_data+'_2_mask_overlap')
-    # os.makedirs(mask_dir, exist_ok=True)
-    # os.makedirs(over_dir, exist_ok=True)
+        # mask_dir = os.path.join(root_path, type_data+'_2_mask')
+        # over_dir = os.path.join(root_path, type_data+'_2_mask_overlap')
+        # os.makedirs(mask_dir, exist_ok=True)
+        # os.makedirs(over_dir, exist_ok=True)
 
-    # masks = ((masks!=0).astype(np.uint8) * 255)
-    # for i in range(masks.shape[0]):
-    #     tif_path = os.path.join(mask_dir, type_data+f'_mask_{i}.tif')
-    #     tiff.imwrite(tif_path, masks[i])
+        # masks = ((masks!=0).astype(np.uint8) * 255)
+        # for i in range(masks.shape[0]):
+        #     tif_path = os.path.join(mask_dir, type_data+f'_mask_{i}.tif')
+        #     tiff.imwrite(tif_path, masks[i])
 
-    #     plt.figure()
-    #     plt.imshow(volume[i])
-    #     plt.imshow(masks[i], alpha=.25)
-    #     plt.savefig(os.path.join(over_dir, type_data+f'_mask_overlap_{i}.png'))
-    #     plt.close()
+        #     plt.figure()
+        #     plt.imshow(volume[i])
+        #     plt.imshow(masks[i], alpha=.25)
+        #     plt.savefig(os.path.join(over_dir, type_data+f'_mask_overlap_{i}.png'))
+        #     plt.close()
 
 

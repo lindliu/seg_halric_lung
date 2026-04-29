@@ -148,11 +148,28 @@ def find_lo_hi_from_dcms(paths, percentiles=(1, 99), crop=None, dtype='int16', s
 
 # specify your image path
 # root_path = glob.glob('./data/Rat MIR/*')
+# root_paths = [
+            # './data/Rat MIR/Rat 3_bleo',
+
+
+            # './data/Rat MIR/Rat 1_control',
+            # './data/Rat MIR/Rat 2_control',
+            # './data/Rat MIR/Rat 4_control',
+            # './data/Rat MIR/Rat 5_control',
+            # './data/Rat MIR/Rat 6_control',
+            # './data/Rat MIR/Rat 1_bleo',
+            # './data/Rat MIR/Rat 2_bleo',
+            # ]
+# root_path = [
+#             './data/Rat MIR/Rat 10_baseline_10',
+#             './data/Rat MIR/Rat 10_during-VILI_10',
+#             './data/Rat MIR/Rat 10_post-VILI_10'
+#             ]
 root_paths = [
-            './data/Rat MIR/Rat 7',
-            './data/Rat MIR/Rat 15',
-            './data/Rat MIR/Rat 17',
-            './data/Rat MIR/Rat 18',
+            './data/Rat MIR/Rat 7_control',
+            './data/Rat MIR/Rat 15_control',
+            './data/Rat MIR/Rat 17_control',
+            './data/Rat MIR/Rat 18_control',
             './data/Rat MIR/Rat 19_baseline_19',
             './data/Rat MIR/Rat 19_during-VILI_19',
             './data/Rat MIR/Rat 19_post-VILI_19',
@@ -161,6 +178,8 @@ root_paths = [
             './data/Rat MIR/Rat 14_post-VILI_14',
             './data/Rat MIR/Rat 16_baseline_16',
             './data/Rat MIR/Rat 16_during-VILI_16'
+            './data/Rat MIR/Rat 16_post-VILI_16',
+
             ]
 # root_paths = [
 #             './data/Rat MIR/Rat 9_baseline_9',
@@ -170,9 +189,9 @@ root_paths = [
 #             './data/Rat MIR/Rat 11_during-VILI_11',
 #             './data/Rat MIR/Rat 11_post-VILI_11'
 #             ]
-# root_paths = ['./data/Rat MIR/Rat 4', './data/Rat MIR/Rat 20']
-# root_paths = ['./data/Rat MIR/Rat 12']
-# root_paths = ['./data/Rat MIR/Rat 13']
+# root_paths = ['./data/Rat MIR/Rat 4_bleo', './data/Rat MIR/Rat 20_control']
+# root_paths = ['./data/Rat MIR/Rat 12_bleo']
+# root_paths = ['./data/Rat MIR/Rat 13_bleo']
 
 # root_paths = glob.glob('./data/Rat MIR/*')
 print(root_paths)
@@ -199,6 +218,8 @@ for root_path in root_paths:
     step_y = int(0.1572/spacing_zyx[1])
     step_x = int(0.1572/spacing_zyx[2])
 
+    # crop = [670,670+1024, 420,420+1024] # 10
+    # crop = [670,670+1024, 500,500+1024] # 1,2,4,5,6
     crop = [670,670+1024, 390,390+1024]  # 7,15,17,18, 14,16,19
     # crop = [620,620+900, 390,390+1024] # 9,11
     # crop = [800,800+800, 600,600+860]  # 4,20
