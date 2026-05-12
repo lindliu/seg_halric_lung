@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.ndimage import distance_transform_edt, label
+from scipy.ndimage import distance_transform_edt, label, zoom
 from sklearn.decomposition import PCA
 import maxflow
 
@@ -207,19 +207,133 @@ def lung_split_graphcut(
     return labels, cut_surface, info
 
 
-mask = np.load('./data/Rat MIR/Rat 9_post_VILI_9/Rat 9_post_VILI_9_masks_0_modified.npy')
-# mask: 3D numpy array, 肺=1, 背景=0
-labels, cut_surface, info = lung_split_graphcut(
-    mask,
-    spacing=(1.0, 1.0, 1.0),   # 换成你的真实 spacing
-    beta=1.5,
-    seed_quantile=0.03,
-    seed_strength=1e6
-)
+def upsample_labels_fast(labels_low, mask_high):
+    factors = [t / s for t, s in zip(mask_high.shape, labels_low.shape)]
+    labels_up = zoom(labels_low, zoom=factors, order=0)
 
-print(info)
-# labels == 1 -> 一侧
-# labels == 2 -> 另一侧
-# cut_surface == True -> 分割界面附近
+    out = np.zeros(mask_high.shape, dtype=np.uint8)
+    z = min(labels_up.shape[0], mask_high.shape[0])
+    y = min(labels_up.shape[1], mask_high.shape[1])
+    x = min(labels_up.shape[2], mask_high.shape[2])
+    out[:z, :y, :x] = labels_up[:z, :y, :x]
 
-np.save('split.npy', labels)
+    out[~(mask_high > 0)] = 0
+    return out
+
+
+from scipy.ndimage import zoom, binary_dilation, binary_closing
+
+def upsample_labels_by_dilation(
+    labels_low,
+    mask_high,
+    dilate_low_iter=1,
+    dilate_high_iter=10,
+    closing_low_iter=1
+):
+    mask_high = mask_high > 0
+
+    left_low = labels_low == 1
+    right_low = labels_low == 2
+
+    # 低分辨率分别修补，避免直接对整肺 closing 把中间桥起来
+    if dilate_low_iter > 0:
+        left_low = binary_dilation(left_low, iterations=dilate_low_iter)
+        right_low = binary_dilation(right_low, iterations=dilate_low_iter)
+
+    structure = np.ones((3, 3, 3), dtype=bool)
+    if closing_low_iter > 0:
+        left_low = binary_closing(left_low, structure=structure, iterations=closing_low_iter)
+        right_low = binary_closing(right_low, structure=structure, iterations=closing_low_iter)
+
+    # 分别上采样
+    factors = [t / s for t, s in zip(mask_high.shape, labels_low.shape)]
+    left_up = zoom(left_low.astype(np.uint8), zoom=factors, order=0) > 0
+    right_up = zoom(right_low.astype(np.uint8), zoom=factors, order=0) > 0
+
+    # 修正尺寸
+    def fit_shape(arr, shape):
+        out = np.zeros(shape, dtype=bool)
+        z = min(arr.shape[0], shape[0])
+        y = min(arr.shape[1], shape[1])
+        x = min(arr.shape[2], shape[2])
+        out[:z, :y, :x] = arr[:z, :y, :x]
+        return out
+
+    left_up = fit_shape(left_up, mask_high.shape)
+    right_up = fit_shape(right_up, mask_high.shape)
+
+    # 只保留 mask 内
+    left_up &= mask_high
+    right_up &= mask_high
+
+    # # 冲突区：两边都占了
+    # overlap = left_up & right_up
+    # left_up[overlap] = True
+    # right_up[overlap] = False
+
+    structure = np.ones((3, 3, 3), dtype=bool)
+    # 低分辨率先各自膨胀
+    if dilate_high_iter > 0:
+        left_up = binary_closing(left_up, structure, iterations=dilate_high_iter)
+        right_up = binary_closing(right_up, structure, iterations=dilate_high_iter)
+
+
+    labels_high = np.zeros(mask_high.shape, dtype=np.uint8)
+    merged = (left_up | right_up)
+    labels_high[merged] = 1
+
+    # labels_high = np.zeros(mask_high.shape, dtype=np.uint8)
+    # labels_high[left_up] = 1
+    # labels_high[right_up] = 2
+
+    return labels_high
+
+
+def func_binary_closing(mask, zoom_factor=.2, dilate_iter=10):
+    mask_low = zoom(mask, zoom=zoom_factor, order=0)
+    # mask: 3D numpy array, 肺=1, 背景=0
+    labels_low, cut_surface_low, info = lung_split_graphcut(
+        mask_low,
+        spacing=(1.0, 1.0, 1.0),   # 换成你的真实 spacing
+        beta=1.5,
+        seed_quantile=0.03,
+        seed_strength=1e6
+    )
+
+    # labels_high = upsample_labels_fast(labels_low, mask)
+    labels_high = upsample_labels_by_dilation(labels_low, mask, dilate_low_iter=3, dilate_high_iter=dilate_iter)
+
+    return labels_high!=0
+
+if __name__ == "__main__":
+
+    mask = np.load('./data/Rat MIR/Rat 9_during-VILI_9/Rat 9_during-VILI_9_masks_0_modified.npy')
+    print(mask.shape)
+
+    zoom_factor = .1
+    mask_low = zoom(mask, zoom=zoom_factor, order=0)
+    # mask: 3D numpy array, 肺=1, 背景=0
+    labels_low, cut_surface_low, info = lung_split_graphcut(
+        mask_low,
+        spacing=(1.0, 1.0, 1.0),   # 换成你的真实 spacing
+        beta=1.5,
+        seed_quantile=0.03,
+        seed_strength=1e6
+    )
+
+    # labels_high = upsample_labels_fast(labels_low, mask)
+    labels_high = upsample_labels_by_dilation(labels_low, mask, dilate_low_iter=3, dilate_high_iter=15)
+
+    # factors = [t / s for t, s in zip(mask.shape, labels_low.shape)]
+    # labels = zoom(labels_low, zoom=factors, order=0)
+    # print(labels.shape)
+    # print(info)
+    # # labels == 1 -> 一侧
+    # # labels == 2 -> 另一侧
+    # # cut_surface == True -> 分割界面附近
+
+    np.save('Rat 9_during-VILI_9_split.npy', labels_high)
+    import matplotlib.pyplot as plt
+    plt.imshow(labels_high[500])
+    plt.savefig('split.png')
+    plt.close()

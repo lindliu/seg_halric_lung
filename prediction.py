@@ -115,7 +115,7 @@ num_re = re.compile(r'(\d+)(?!.*\d)')
 
 
 type_data = 'control_baseline' #   'model_during_post' # 'bleo'  # 
-for type_data in ['model_during_post', 'control_baseline']: #['control_baseline', 'model_during_post', 'bleo']:
+for type_data in ['control_baseline', 'model_during_post', 'bleo']:
 
     ### load model
     if type_data == 'control_baseline':
@@ -123,22 +123,22 @@ for type_data in ['model_during_post', 'control_baseline']: #['control_baseline'
         model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
         #7,9,10,11,14,15,16,17,18,19,20,#1,2,4,5,6
         root_path_list = [
-                        # './data/Rat MIR/Rat 1_control',
-                        # './data/Rat MIR/Rat 2_control',
-                        # './data/Rat MIR/Rat 4_control',
-                        # './data/Rat MIR/Rat 5_control',
-                        # './data/Rat MIR/Rat 6_control',
+                        './data/Rat MIR/Rat 1_control',
+                        './data/Rat MIR/Rat 2_control',
+                        './data/Rat MIR/Rat 4_control',
+                        './data/Rat MIR/Rat 5_control',
+                        './data/Rat MIR/Rat 6_control',
                         './data/Rat MIR/Rat 15_control',
-                        #   './data/Rat MIR/Rat 7_control',
-                        #   './data/Rat MIR/Rat 9_baseline_9',
-                        #   './data/Rat MIR/Rat 11_baseline_11',
-                        #   './data/Rat MIR/Rat 14_baseline_14',
-                        #   './data/Rat MIR/Rat 15_control',
-                        #   './data/Rat MIR/Rat 16_baseline_16',
-                        #   './data/Rat MIR/Rat 17_control',
-                        #   './data/Rat MIR/Rat 18_control',
-                        #   './data/Rat MIR/Rat 19_baseline_19',
-                        #   './data/Rat MIR/Rat 20_control'
+                          './data/Rat MIR/Rat 7_control',
+                          './data/Rat MIR/Rat 9_baseline_9',
+                          './data/Rat MIR/Rat 11_baseline_11',
+                          './data/Rat MIR/Rat 14_baseline_14',
+                          './data/Rat MIR/Rat 15_control',
+                          './data/Rat MIR/Rat 16_baseline_16',
+                          './data/Rat MIR/Rat 17_control',
+                          './data/Rat MIR/Rat 18_control',
+                          './data/Rat MIR/Rat 19_baseline_19',
+                          './data/Rat MIR/Rat 20_control'
                         ]
 
     if type_data == 'model_during_post':
@@ -146,19 +146,19 @@ for type_data in ['model_during_post', 'control_baseline']: #['control_baseline'
         model = models.CellposeModel(gpu=True, pretrained_model=new_model_path)
         # 9,10,11,14,16,19
         root_path_list = [
-                        # './data/Rat MIR/Rat 10_baseline_10',
-                        # './data/Rat MIR/Rat 10_during-VILI_10',
-                        # './data/Rat MIR/Rat 10_post-VILI_10',
+                        './data/Rat MIR/Rat 10_baseline_10',
+                        './data/Rat MIR/Rat 10_during-VILI_10',
+                        './data/Rat MIR/Rat 10_post-VILI_10',
                         './data/Rat MIR/Rat 16_post-VILI_16'
-                        #  './data/Rat MIR/Rat 9_during-VILI_9',
-                        #   './data/Rat MIR/Rat 9_post_VILI_9',
-                        #   './data/Rat MIR/Rat 11_during-VILI_11',
-                        #   './data/Rat MIR/Rat 11_post-VILI_11',
-                        #   './data/Rat MIR/Rat 14_during-VILI_14',
-                        #   './data/Rat MIR/Rat 14_post-VILI_14',
-                        #   './data/Rat MIR/Rat 16_during-VILI_16',
-                        #   './data/Rat MIR/Rat 19_during-VILI_19',
-                        #   './data/Rat MIR/Rat 19_post-VILI_19'
+                         './data/Rat MIR/Rat 9_during-VILI_9',
+                          './data/Rat MIR/Rat 9_post_VILI_9',
+                          './data/Rat MIR/Rat 11_during-VILI_11',
+                          './data/Rat MIR/Rat 11_post-VILI_11',
+                          './data/Rat MIR/Rat 14_during-VILI_14',
+                          './data/Rat MIR/Rat 14_post-VILI_14',
+                          './data/Rat MIR/Rat 16_during-VILI_16',
+                          './data/Rat MIR/Rat 19_during-VILI_19',
+                          './data/Rat MIR/Rat 19_post-VILI_19'
                         ]
 
     if type_data == 'bleo':
@@ -170,9 +170,9 @@ for type_data in ['model_during_post', 'control_baseline']: #['control_baseline'
                         './data/Rat MIR/Rat 1_bleo',
                         './data/Rat MIR/Rat 2_bleo',
 
-                        # './data/Rat MIR/Rat 4_bleo',
-                        # './data/Rat MIR//Rat 12_bleo',
-                        # './data/Rat MIR//Rat 13_bleo'
+                        './data/Rat MIR/Rat 4_bleo',
+                        './data/Rat MIR//Rat 12_bleo',
+                        './data/Rat MIR//Rat 13_bleo'
                         ]
 
     # cellprob_threshold = -10

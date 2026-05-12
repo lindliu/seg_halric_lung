@@ -13,6 +13,7 @@ from scipy import ndimage as ndi
 from skimage.morphology import remove_small_objects, remove_small_holes, ball, binary_opening, skeletonize
 from cellpose import dynamics
 import torch
+from split import func_binary_closing
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -184,9 +185,15 @@ for root_path in root_path_list:
         ### keep top k components
         masks = keep_k_component(masks_, top_k=1)
         
+        ### fill all holes
+        has, num, holes_mask = has_holes_3d(masks, connectivity=1)
+        print(f'the number of holes: {num}')
+        masks[holes_mask] = True
+
         ### closing operation, fill small hole
-        masks = ndi.binary_closing(masks, structure, iterations=3)
-        
+        # masks = ndi.binary_closing(masks, structure, iterations=3)
+        masks = func_binary_closing(masks, zoom_factor=.2, dilate_iter=35)
+
         ### fill all holes
         has, num, holes_mask = has_holes_3d(masks, connectivity=1)
         print(f'the number of holes: {num}')
