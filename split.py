@@ -235,7 +235,7 @@ def upsample_labels_by_dilation(
     left_low = labels_low == 1
     right_low = labels_low == 2
 
-    # 低分辨率分别修补，避免直接对整肺 closing 把中间桥起来
+    # 低分辨率分别修补，避免直接对整肺 closing 把中间桥起来,低分辨率先各自膨胀
     if dilate_low_iter > 0:
         left_low = binary_dilation(left_low, iterations=dilate_low_iter)
         right_low = binary_dilation(right_low, iterations=dilate_low_iter)
@@ -272,7 +272,7 @@ def upsample_labels_by_dilation(
     # right_up[overlap] = False
 
     structure = np.ones((3, 3, 3), dtype=bool)
-    # 低分辨率先各自膨胀
+    # 
     if dilate_high_iter > 0:
         left_up = binary_closing(left_up, structure, iterations=dilate_high_iter)
         right_up = binary_closing(right_up, structure, iterations=dilate_high_iter)

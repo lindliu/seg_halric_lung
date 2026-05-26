@@ -67,3 +67,17 @@ for path in path_list:
 print(hist.max(), hist.min())
 plt.plot(hist)
 plt.savefig('hist_villipost_19.png')
+
+
+# # %%
+# import matplotlib.pyplot as plt
+# import numpy as np
+# from tifffile import imread
+
+# a = imread(r"C:\Users\CIPA1\Desktop\training segmentation model\raw phosphorous maps\Pin1_elements_stitch_5-8_wP_K.tif")
+
+
+# # a = plt.imread(r"C:\Users\CIPA1\Desktop\training segmentation model\raw phosphorous maps\Pin1_elements_stitch_5-8_wP_K.tif")
+# print(a.shape)
+# print(np.unique(a))
+# plt.imshow(a)

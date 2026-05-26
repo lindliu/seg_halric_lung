@@ -116,7 +116,7 @@ num_re = re.compile(r'(\d+)(?!.*\d)')
 
 # root_path_list = ['./data/Rat MIR/Rat 19',\
 #                   './data/Rat MIR/Rat 17']
-root_path_list = glob.glob('./data/Rat MIR/*')
+root_path_list = glob.glob('./data/Rat MIR/*')[1:]
 # root_path_list = [
 #                     './data/Rat MIR/Rat 9_during-VILI_9',
                     # './data/Rat MIR/Rat 9_post_VILI_9',
@@ -140,12 +140,12 @@ for root_path in root_path_list:
     path_list = sorted(path_list, key=lambda x: int(num_re.search(os.path.split(x)[1]).group(1)))
     #path_list = path_list[50:250]
     Z = len(path_list)
-    Y, X = plt.imread(path_list[0]).shape
+    Y, X = tiff.imread(path_list[0]).shape
 
     ### get 3d image data
     volume = np.zeros([Z, Y, X]).astype('float32')
     for i in range(Z):
-        volume[i] = plt.imread(path_list[i])[:,:]
+        volume[i] = tiff.imread(path_list[i])[:,:]
 
     ## get lung masks
     masks_ = np.load(os.path.join(root_path, type_data+'_masks_0.npy')) != 0
@@ -192,7 +192,7 @@ for root_path in root_path_list:
 
         ### closing operation, fill small hole
         # masks = ndi.binary_closing(masks, structure, iterations=3)
-        masks = func_binary_closing(masks, zoom_factor=.2, dilate_iter=35)
+        masks = func_binary_closing(masks, zoom_factor=.2, dilate_iter=30)
 
         ### fill all holes
         has, num, holes_mask = has_holes_3d(masks, connectivity=1)
@@ -219,17 +219,17 @@ for root_path in root_path_list:
 
         masks = ((masks!=0).astype(np.uint8) * 255)
         for i in range(masks.shape[0]):
-            tif_path = os.path.join(mask_dir, f'mask_{i}.tif')
+            tif_path = os.path.join(mask_dir, f'mask_{i:04d}.tif')
             tiff.imwrite(tif_path, masks[i])
 
-            lung_path = os.path.join(lung_dir, f'lung_{i}.tif')
+            lung_path = os.path.join(lung_dir, f'lung_{i:04d}.tif')
             tiff.imwrite(lung_path, lung[i])
 
-            # lung1_path = os.path.join(lung1_dir, f'lung_{i}.tif')
+            # lung1_path = os.path.join(lung1_dir, f'lung_{i:04d}.tif')
             # tiff.imwrite(lung1_path, lung[i]*lung_bright_bin[i])
 
             plt.figure()
             plt.imshow(volume[i])
             plt.imshow(masks[i], alpha=.25)
-            plt.savefig(os.path.join(over_dir, f'mask_overlap_{i}.png'))
+            plt.savefig(os.path.join(over_dir, f'mask_overlap_{i:04d}.png'))
             plt.close()
